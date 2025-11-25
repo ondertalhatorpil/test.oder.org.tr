@@ -7,12 +7,12 @@ services:
       dockerfile: Dockerfile
       args:
         - REACT_APP_API_URL=https://test.onder.org.tr/api
-    container_name: bilgeyaris-frontend
+    container_name: besiraga-frontend
     restart: unless-stopped
     ports:
       - "7821:80"
     networks:
-      - bilgeyaris-network
+      - besiraga-network
     depends_on:
       - backend
 
@@ -20,7 +20,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: bilgeyaris-backend
+    container_name: besiraga-backend
     restart: unless-stopped
     ports:
       - "7822:5001"
@@ -37,11 +37,11 @@ services:
     volumes:
       - ./backend/uploads:/usr/src/app/uploads
     networks:
-      - bilgeyaris-network
+      - besiraga-network
 
   mysql:
     image: mysql:8.0
-    container_name: bilgeyaris-mysql
+    container_name: besiraga-mysql
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=guvenli_sifre_123
@@ -51,12 +51,12 @@ services:
     ports:
       - "7833:3306"
     networks:
-      - bilgeyaris-network
+      - besiraga-network
     command: --default-authentication-plugin=mysql_native_password
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: bilgeyaris-phpmyadmin
+    container_name: besiraga-phpmyadmin
     restart: unless-stopped
     ports:
       - "7824:80"
@@ -68,10 +68,10 @@ services:
     depends_on:
       - mysql
     networks:
-      - bilgeyaris-network
+      - besiraga-network
 
 networks:
-  bilgeyaris-network:
+  besiraga-network:
     driver: bridge
 
 volumes:
