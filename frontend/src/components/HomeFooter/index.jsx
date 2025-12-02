@@ -12,21 +12,19 @@ const FinchLanding = () => {
 
           <div className="flex flex-col gap-6 items-center">
             <a href="tel:+905551234567" className="flex items-center gap-4 no-underline text-black text-base md:text-lg group">
-              <span className="w-12 h-12 md:w-8 md:h-8 rounded-full p-2 bg-[#D12A2C] flex items-center justify-center transition-all duration-300 group-hover:bg-amber-900/20">
+              <span className="w-12 h-12 md:w-8 md:h-8 rounded-full p-2 bg-[#D12A2C] flex items-center justify-center transition-all duration-300 ">
                 <Phone size={24} className="text-white" />
               </span>
-              <span className="group-hover:text-white transition-colors duration-300">+90 553 297 88 73</span>
+              <span className=" transition-colors duration-300">+90 553 297 88 73</span>
             </a>
             <a href="mailto:info@besiragakulliyesi.com" className="flex items-center gap-4 no-underline text-black text-base md:text-lg group">
-              <span className="w-12 h-12 md:w-8 md:h-8 rounded-full p-2 bg-[#D12A2C] flex items-center justify-center transition-all duration-300 group-hover:bg-white/20">
+              <span className="w-12 h-12 md:w-8 md:h-8 rounded-full p-2 bg-[#D12A2C] flex items-center justify-center transition-all duration-300 ">
                 <Mail size={24} className="text-white" />
               </span>
-              <span className="group-hover:text-white transition-colors duration-300">besiraga@onder.org.tr</span>
+              <span className=" transition-colors duration-300">besiraga@onder.org.tr</span>
             </a>
           </div>
         </div>
-
-
         <footer className="text-gray-600 text-xs md:text-sm mt-8 text-center">
           <p>Copyright © 2025, Beşirağa Külliyesi | ÖNDER İmam Hatipliler Derneği</p>
         </footer>

@@ -1,8 +1,3 @@
-/**
- * Dosya: frontend/src/services/api.js
- * Açıklama: Backend API ile iletişim servisi
- */
-
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 // Genel fetch fonksiyonu
@@ -114,4 +109,63 @@ export const adminAPI = {
   },
 };
 
-export default { rezervasyonAPI, adminAPI };
+// Galeri API'leri
+export const galleryAPI = {
+  // ==================== PUBLIC ENDPOİNTS ====================
+  
+  // Onaylanmış galeri öğelerini getir (Ziyaretçiler için)
+  getApprovedGallery: async () => {
+    return fetchAPI('/gallery/approved');
+  },
+
+  // Yeni galeri öğesi gönder (Ziyaretçiler için)
+  submitGalleryItem: async (data) => {
+    return fetchAPI('/gallery/submit', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // ==================== ADMIN ENDPOİNTS ====================
+  
+  // Tüm galeri öğelerini getir (Admin - status filtresi ile)
+  getAllGalleryItems: async (status = null) => {
+    const queryString = status ? `?status=${status}` : '';
+    return fetchAPI(`/gallery/admin/all${queryString}`);
+  },
+
+  // Galeri istatistikleri (Admin dashboard için)
+  getGalleryStats: async () => {
+    return fetchAPI('/gallery/admin/stats');
+  },
+
+  // Galeri öğesi detayı (Admin)
+  getGalleryItemDetail: async (id) => {
+    return fetchAPI(`/gallery/admin/${id}`);
+  },
+
+  // Galeri öğesini onayla (Admin)
+  approveGalleryItem: async (id, admin_id) => {
+    return fetchAPI(`/gallery/admin/${id}/approve`, {
+      method: 'PUT',
+      body: JSON.stringify({ admin_id }),
+    });
+  },
+
+  // Galeri öğesini reddet (Admin)
+  rejectGalleryItem: async (id, admin_id, admin_note = null) => {
+    return fetchAPI(`/gallery/admin/${id}/reject`, {
+      method: 'PUT',
+      body: JSON.stringify({ admin_id, admin_note }),
+    });
+  },
+
+  // Galeri öğesini sil (Admin)
+  deleteGalleryItem: async (id) => {
+    return fetchAPI(`/gallery/admin/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+export default { rezervasyonAPI, adminAPI, galleryAPI };

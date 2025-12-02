@@ -6,7 +6,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - REACT_APP_API_URL=https://test.onder.org.tr/api
+        - REACT_APP_API_URL=https://besiraga.onder.org.tr/api
     container_name: besiraga-frontend
     restart: unless-stopped
     ports:

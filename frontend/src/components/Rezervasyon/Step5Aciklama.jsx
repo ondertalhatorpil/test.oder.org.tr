@@ -19,11 +19,8 @@ const Step5Aciklama = ({ formData, updateFormData, nextStep, prevStep }) => {
 
   return (
     <div>
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Açıklama</h2>
-        <p className="text-gray-600">
-          Eklemek istediğiniz bir açıklama veya not varsa yazabilirsiniz (opsiyonel)
-        </p>
+     <div className="mb-8">
+        <h2 className="text-3xl font-bold text-red-600 mb-2">Açıklama</h2>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -103,41 +100,10 @@ Buraya yazabilirsiniz..."
           </div>
         </div>
 
-        {/* Örnek Açıklamalar */}
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
-          <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
-            <span className="text-xl">💡</span>
-            Örnek Açıklamalar
-          </h4>
-          <div className="space-y-2 text-sm text-blue-800">
-            <button
-              type="button"
-              onClick={() => setAciklama('Tarih ve kültür gezisi programımız kapsamında ziyaret edeceğiz.')}
-              className="block w-full text-left p-2 hover:bg-blue-100 rounded transition"
-            >
-              "Tarih ve kültür gezisi programımız kapsamında ziyaret edeceğiz."
-            </button>
-            <button
-              type="button"
-              onClick={() => setAciklama('9. sınıf öğrencilerimizle eğitim amaçlı geleceğiz. Sesli rehber hizmeti almak istiyoruz.')}
-              className="block w-full text-left p-2 hover:bg-blue-100 rounded transition"
-            >
-              "9. sınıf öğrencilerimizle eğitim amaçlı geleceğiz."
-            </button>
-            <button
-              type="button"
-              onClick={() => setAciklama('STK olarak gençlik etkinliği düzenliyoruz. Fotoğraf çekimi yapacağız.')}
-              className="block w-full text-left p-2 hover:bg-blue-100 rounded transition"
-            >
-              "STK olarak gençlik etkinliği düzenliyoruz."
-            </button>
-          </div>
-        </div>
-
         {/* Info */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
           <p className="text-sm text-gray-600">
-            ℹ️ Bu açıklama yönetici tarafından görülecektir. Rezervasyon değerlendirmesinde 
+            ℹ️ Rezervasyon değerlendirmesinde 
             yardımcı olabilecek bilgileri paylaşabilirsiniz.
           </p>
         </div>

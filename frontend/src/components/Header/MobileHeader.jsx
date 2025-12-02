@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, LayoutGrid, Headphones, HelpCircle, Info, Menu, X } from 'lucide-react';
+import { Home, LayoutGrid, Headphones, HelpCircle, Info, Menu, X, BookMarked } from 'lucide-react';
 
 // Menü listemiz (Etiketler çok önemli)
 const menuItems = [
   { id: 1, Icon: Home, href: '/', label: 'Anasayfa' },
-  { id: 2, Icon: LayoutGrid, href: '/galeri', label: 'Galeri' },
-  { id: 3, Icon: Headphones, href: '#', label: 'Sesli Tur' },
+  { id: 2, Icon: BookMarked, href: '/rezervasyon', label: 'Rezervasyon' },
+  { id: 3, Icon: LayoutGrid, href: '/galeri', label: 'Galeri' },
   { id: 4, Icon: HelpCircle, href: '/bilgi-yarismasi', label: 'Bilgi Yarışması' },
   { id: 5, Icon: Info, href: '/hakkimizda', label: 'Hakkımızda' }
 ];

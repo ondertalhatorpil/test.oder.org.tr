@@ -1,6 +1,6 @@
 /**
  * Dosya: frontend/src/components/Rezervasyon/Step2TarihSecimi.jsx
- * Açıklama: Adım 2 - Tarih seçimi (geçmiş tarihler ve dolu günler disabled)
+ * Açıklama: Adım 2 - Tarih seçimi (Responsive & Kurumsal)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -12,12 +12,10 @@ const Step2TarihSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
   const [doluGunler, setDoluGunler] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Ay değiştiğinde dolu günleri yükle
   useEffect(() => {
     loadDoluGunler();
   }, [currentMonth]);
 
-  // Seçili tarih varsa onu state'e al
   useEffect(() => {
     if (formData.tarih) {
       setSelectedDate(formData.tarih);
@@ -33,16 +31,12 @@ const Step2TarihSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
 
       const doluGunlerTemp = {};
 
-      // Her gün için doluluk kontrolü yap
       for (let gun = 1; gun <= gunSayisi; gun++) {
         const tarih = `${yil}-${String(ay).padStart(2, '0')}-${String(gun).padStart(2, '0')}`;
-        
         try {
           const response = await rezervasyonAPI.getTarihDoluluk(tarih);
-          
           if (response.success) {
             const saatler = response.saatler;
-            // Tüm saatler dolu mu kontrol et
             const tumSaatlerDolu = Object.values(saatler).every(saat => saat.dolu);
             doluGunlerTemp[tarih] = tumSaatlerDolu;
           }
@@ -50,7 +44,6 @@ const Step2TarihSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
           console.error(`Tarih doluluk hatası (${tarih}):`, error);
         }
       }
-
       setDoluGunler(doluGunlerTemp);
     } catch (error) {
       console.error('Dolu günler yükleme hatası:', error);
@@ -65,25 +58,21 @@ const Step2TarihSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     if (!selectedDate) {
       alert('Lütfen bir tarih seçin');
       return;
     }
-
     updateFormData('tarih', selectedDate);
     nextStep();
   };
 
-  // Takvim render fonksiyonları
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-
+    const startingDayOfWeek = firstDay.getDay(); 
     return { daysInMonth, startingDayOfWeek };
   };
 
@@ -109,9 +98,9 @@ const Step2TarihSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
       'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
     ];
 
-    // Boş günler (ayın başlangıcından önceki)
+    // Boş günler
     for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(<div key={`empty-${i}`} className="p-2"></div>);
+      days.push(<div key={`empty-${i}`} className="bg-gray-50/30"></div>);
     }
 
     // Günler
@@ -121,38 +110,47 @@ const Step2TarihSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
       const isFull = isDateFull(tarih);
       const isSelected = selectedDate === tarih;
 
-      let dayClass = 'p-3 text-center rounded-lg cursor-pointer transition-all ';
+      // Responsive Sınıflar
+      // h-14 (mobil) -> sm:h-20 (tablet/desktop)
+      let containerClass = "relative h-14 sm:h-24 border border-gray-100 flex flex-col items-center justify-center transition-all duration-200 group ";
+      
+      // text-sm (mobil) -> sm:text-lg (tablet/desktop)
+      let textClass = "font-medium text-sm sm:text-lg ";
+      let statusIndicator = null;
 
       if (isPast) {
-        // Geçmiş tarihler
-        dayClass += 'bg-gray-100 text-gray-400 cursor-not-allowed';
+        containerClass += "bg-gray-100 cursor-not-allowed opacity-60";
+        textClass += "text-gray-400";
       } else if (isFull) {
-        // Dolu günler
-        dayClass += 'bg-red-100 text-red-500 cursor-not-allowed';
+        containerClass += "bg-red-50 cursor-not-allowed";
+        textClass += "text-red-300 decoration-red-300 line-through";
+        // text-[8px] (mobil) -> sm:text-[10px] (desktop)
+        statusIndicator = <span className="text-[8px] sm:text-[10px] text-red-400 font-semibold mt-0.5 sm:mt-1">DOLU</span>;
       } else if (isSelected) {
-        // Seçili gün
-        dayClass += 'bg-red-500 text-white font-bold scale-110 shadow-lg';
+        containerClass += "bg-[#D12A2C] shadow-lg scale-105 z-10 border-[#D12A2C] rounded-lg transform";
+        textClass += "text-white font-bold";
+        statusIndicator = <span className="text-[8px] sm:text-[10px] text-red-100 font-medium mt-0.5 sm:mt-1">SEÇİLDİ</span>;
       } else {
-        // Seçilebilir günler
-        dayClass += 'bg-green-50 text-green-700 hover:bg-green-100 hover:scale-105';
+        containerClass += "bg-white hover:bg-red-50 hover:border-red-200 cursor-pointer hover:shadow-md hover:z-10";
+        textClass += "text-gray-700 group-hover:text-[#D12A2C]";
       }
 
       days.push(
         <div
           key={day}
-          className={dayClass}
           onClick={() => !isPast && !isFull && handleDateSelect(tarih)}
+          className={containerClass}
         >
-          <div className="font-semibold">{day}</div>
-          {isFull && <div className="text-xs mt-1">DOLU</div>}
+          <span className={textClass}>{day}</span>
+          {statusIndicator}
         </div>
       );
     }
 
     return (
-      <div className="mt-6">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         {/* Ay Navigasyonu */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="px-4 py-3 sm:px-6 sm:py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
           <button
             type="button"
             onClick={() => {
@@ -160,13 +158,15 @@ const Step2TarihSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
               newMonth.setMonth(newMonth.getMonth() - 1);
               setCurrentMonth(newMonth);
             }}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+            className="p-1.5 sm:p-2 text-gray-600 hover:text-[#D12A2C] hover:bg-white hover:shadow-sm rounded-full transition-all"
           >
-            ← Önceki
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
           </button>
 
-          <h3 className="text-2xl font-bold text-gray-900">
-            {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+          <h3 className="text-lg sm:text-xl  font-bold text-gray-900 text-center">
+            {monthNames[currentMonth.getMonth()]} <span className="text-[#D12A2C] block sm:inline">{currentMonth.getFullYear()}</span>
           </h3>
 
           <button
@@ -176,104 +176,108 @@ const Step2TarihSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
               newMonth.setMonth(newMonth.getMonth() + 1);
               setCurrentMonth(newMonth);
             }}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+            className="p-1.5 sm:p-2 text-gray-600 hover:text-[#D12A2C] hover:bg-white hover:shadow-sm rounded-full transition-all"
           >
-            Sonraki →
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </button>
         </div>
 
         {/* Haftanın Günleri */}
-        <div className="grid grid-cols-7 gap-2 mb-2">
+        <div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50/50">
           {['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'].map(day => (
-            <div key={day} className="text-center font-bold text-gray-600 text-sm">
+            <div key={day} className="py-2 sm:py-3 text-center text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider">
               {day}
             </div>
           ))}
         </div>
 
-        {/* Günler */}
-        <div className="grid grid-cols-7 gap-2">
+        {/* Günler Izgarası */}
+        <div className="grid grid-cols-7 bg-gray-100 gap-[1px] border-b border-gray-100">
           {days}
         </div>
-
+        
         {loading && (
-          <div className="text-center mt-4 text-gray-500">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
-            <p className="mt-2">Doluluk durumu kontrol ediliyor...</p>
+          <div className="w-full h-1 bg-gray-100">
+            <div className="h-1 bg-red-600 animate-progress"></div>
           </div>
         )}
+
+        {/* Lejant (Responsive Gap ve Font) */}
+        <div className="px-4 py-3 sm:px-6 bg-white flex flex-wrap gap-3 sm:gap-6 justify-center text-xs sm:text-sm border-t border-gray-100">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-white border border-gray-300"></div>
+            <span className="text-gray-600">Müsait</span>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#D12A2C]"></div>
+            <span className="text-gray-900 font-medium">Seçili</span>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-100"></div>
+            <span className="text-gray-400 decoration-slice line-through">Dolu</span>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-gray-200"></div>
+            <span className="text-gray-400">Geçmiş</span>
+          </div>
+        </div>
       </div>
     );
   };
 
   return (
-    <div>
+    <div className="max-w-4xl mx-auto font-sans px-4 sm:px-0">
+      {/* Başlık */}
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-red-600 mb-2">Tarih Seçimi</h2>
+        <h2 className="text-3xl font-bold text-red-600 mb-2">Ziyaret Tarihi</h2>
       </div>
 
-      {/* Renk Açıklamaları */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-          <div className="w-8 h-8 bg-gray-100 border-2 border-gray-300 rounded"></div>
-          <div>
-            <p className="font-semibold text-gray-700">Geçmiş</p>
-            <p className="text-xs text-gray-500">Seçilemez</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
-          <div className="w-8 h-8 bg-red-100 border-2 border-red-300 rounded"></div>
-          <div>
-            <p className="font-semibold text-red-700">Dolu</p>
-            <p className="text-xs text-red-500">Tüm saatler rezerve</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-          <div className="w-8 h-8 bg-green-100 border-2 border-green-300 rounded"></div>
-          <div>
-            <p className="font-semibold text-green-700">Müsait</p>
-            <p className="text-xs text-green-500">Rezerve edilebilir</p>
-          </div>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit}>
-        {/* Takvim */}
+      <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
         {renderCalendar()}
 
-        {/* Seçili Tarih Gösterimi */}
+        {/* Seçim Özeti Kartı */}
         {selectedDate && (
-          <div className="mt-6 p-4 bg-red-50 border-2 border-red-500 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Seçilen Tarih:</p>
-            <p className="text-xl font-bold text-amber-900">
-              {new Date(selectedDate + 'T00:00:00').toLocaleDateString('tr-TR', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-                weekday: 'long'
-              })}
-            </p>
+          <div className="bg-red-50 border-l-4 border-[#D12A2C] p-4 rounded-r-lg flex flex-col sm:flex-row sm:items-center justify-between animate-fade-in-up gap-2 sm:gap-0">
+            <div>
+              <p className="text-xs sm:text-sm font-bold text-red-800 uppercase tracking-wide mb-1">Seçilen Tarih</p>
+              <p className="text-xl sm:text-2xl font-serif text-gray-900">
+                {new Date(selectedDate).toLocaleDateString('tr-TR', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                  weekday: 'long'
+                })}
+              </p>
+            </div>
+            <div className="hidden sm:block text-red-200">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-12 sm:w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
           </div>
         )}
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between pt-6">
+        {/* Butonlar */}
+        <div className="flex flex-col-reverse md:flex-row justify-between pt-2 gap-3 sm:gap-4 pb-8 sm:pb-0">
           <button
             type="button"
             onClick={prevStep}
-            className="px-8 py-3 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-all"
+            className="w-full md:w-auto px-6 py-3 text-gray-700 bg-white border border-gray-300 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-all text-sm sm:text-base"
           >
             ← Geri
           </button>
 
           <button
             type="submit"
-            className="px-8 py-3 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 transition-all shadow-lg hover:shadow-xl disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="w-full md:w-auto px-8 py-3 bg-[#D12A2C] text-white font-bold rounded-lg hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
             disabled={!selectedDate}
           >
-            Devam Et →
+            Devam Et
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
           </button>
         </div>
       </form>

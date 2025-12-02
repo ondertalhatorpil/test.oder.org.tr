@@ -1,10 +1,66 @@
-/**
- * Dosya: frontend/src/components/Rezervasyon/Step4MekanSecimi.jsx
- * Açıklama: Adım 4 - Mekan seçimi ve kişi sayısı girişi
- */
-
 import React, { useState, useEffect } from 'react';
 import { rezervasyonAPI } from '../../services/api';
+import mekanlarData from '../../data/mekanlarData';
+
+// --- Mekan Galeri Modalı Bileşeni ---
+const MekanGaleriModal = ({ isOpen, onClose, mekanlar }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-70 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+        
+        {/* Modal Başlık */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h3 className="text-xl font-bold text-red-600">Mekan Görselleri</h3>
+          <button 
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+            aria-label="Kapat"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Modal İçerik (Görsel Grid) */}
+        <div className="p-4 overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {mekanlar.map((mekan) => (
+              <div key={mekan.id} className="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"> 
+                {/* Yatay görsel oranı: 16:9 (aspect-video) */}
+                <div className="relative w-full aspect-video overflow-hidden bg-gray-300"> 
+                  {mekan.gorselUrl ? (
+                    <img 
+                      src={mekan.gorselUrl} 
+                      alt={mekan.mekan_adi} 
+                      // Görselin kapsayıcıyı doldurması için object-cover kullanıldı
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                      onError={(e) => {
+                        e.target.onerror = null; 
+                        e.target.alt = `Görsel Yüklenemedi: ${mekan.gorselUrl}`;
+                        e.target.style.opacity = '0.1';
+                        e.target.style.background = 'repeating-linear-gradient(45deg, #ccc 0, #ccc 10px, #eee 10px, #eee 20px)';
+                      }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
+                      Görsel Yok
+                    </div>
+                  )}
+                </div>
+                <div className="p-3 bg-white">
+                  <p className="text-center text-sm font-semibold text-gray-700">{mekan.mekan_adi}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Step4MekanSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
   const [mekanlar, setMekanlar] = useState([]);
@@ -12,17 +68,23 @@ const Step4MekanSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
   const [loading, setLoading] = useState(false);
   const [musaitlikMesaji, setMusaitlikMesaji] = useState(null);
   const [musaitlikKontrolEdiliyor, setMusaitlikKontrolEdiliyor] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); 
 
-  // Mekanları yükle
   useEffect(() => {
     loadMekanlar();
   }, []);
 
-  // Müsaitlik kontrolü debounce ile
   useEffect(() => {
     const timer = setTimeout(() => {
       if (Object.keys(seciliMekanlar).length > 0) {
-        checkMusaitlik();
+        const toplamKisi = Object.values(seciliMekanlar).reduce((a, b) => a + b, 0);
+        if (toplamKisi > 0) {
+          checkMusaitlik();
+        } else {
+          setMusaitlikMesaji(null);
+        }
+      } else {
+        setMusaitlikMesaji(null);
       }
     }, 500);
 
@@ -32,26 +94,17 @@ const Step4MekanSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
   const loadMekanlar = async () => {
     setLoading(true);
     try {
-      const response = await rezervasyonAPI.getMekanlar();
-      if (response.success) {
-        setMekanlar(response.data);
-      }
+      await new Promise(resolve => setTimeout(resolve, 500)); 
+      setMekanlar(mekanlarData); 
     } catch (error) {
       console.error('Mekanlar yükleme hatası:', error);
-      alert('Mekanlar yüklenirken bir hata oluştu');
+      setMekanlar([]); 
     } finally {
       setLoading(false);
     }
   };
 
   const checkMusaitlik = async () => {
-    // Toplam kişi sayısı 0 ise kontrol yapma
-    const toplamKisi = Object.values(seciliMekanlar).reduce((a, b) => a + b, 0);
-    if (toplamKisi === 0) {
-      setMusaitlikMesaji(null);
-      return;
-    }
-
     setMusaitlikKontrolEdiliyor(true);
     try {
       const response = await rezervasyonAPI.musaitlikKontrol({
@@ -69,7 +122,7 @@ const Step4MekanSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
       console.error('Müsaitlik kontrol hatası:', error);
       setMusaitlikMesaji({
         musait: false,
-        message: 'Müsaitlik kontrolü yapılırken bir hata oluştu'
+        message: 'Kontrol sırasında hata oluştu.'
       });
     } finally {
       setMusaitlikKontrolEdiliyor(false);
@@ -79,11 +132,9 @@ const Step4MekanSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
   const handleMekanToggle = (mekanAdi) => {
     const yeniSeciliMekanlar = { ...seciliMekanlar };
     
-    if (yeniSeciliMekanlar[mekanAdi]) {
-      // Mekan zaten seçili, kaldır
+    if (yeniSeciliMekanlar.hasOwnProperty(mekanAdi)) {
       delete yeniSeciliMekanlar[mekanAdi];
     } else {
-      // Mekan seçilmemiş, ekle (varsayılan 0 kişi)
       yeniSeciliMekanlar[mekanAdi] = 0;
     }
     
@@ -92,40 +143,34 @@ const Step4MekanSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
 
   const handleKisiSayisiChange = (mekanAdi, kisi) => {
     const kisiSayisi = parseInt(kisi) || 0;
+    const maxKisi = 9999; 
+    const yeniKisiSayisi = Math.min(Math.max(0, kisiSayisi), maxKisi);
     
-    // Mekanın kapasitesini bul
-    const mekan = mekanlar.find(m => m.mekan_adi === mekanAdi);
-    if (mekan && kisiSayisi > mekan.kapasite) {
-      alert(`${mekanAdi} maksimum ${mekan.kapasite} kişi alabilir`);
-      return;
-    }
-
     setSeciliMekanlar({
       ...seciliMekanlar,
-      [mekanAdi]: kisiSayisi
+      [mekanAdi]: yeniKisiSayisi
     });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Validasyon
-    if (Object.keys(seciliMekanlar).length === 0) {
-      alert('Lütfen en az bir mekan seçin');
-      return;
-    }
-
-    // Kişi sayısı kontrolü
     const toplamKisi = Object.values(seciliMekanlar).reduce((a, b) => a + b, 0);
-    if (toplamKisi === 0) {
-      alert('Lütfen kişi sayılarını girin');
+
+    if (Object.keys(seciliMekanlar).length === 0) {
+      alert('Lütfen en az bir mekan seçiniz.');
       return;
     }
-
-    // Müsaitlik kontrolü başarılı mı?
-    if (!musaitlikMesaji || !musaitlikMesaji.musait) {
-      alert('Seçtiğiniz mekanlar müsait değil. Lütfen farklı mekanlar seçin.');
+    if (toplamKisi === 0) {
+      alert('Lütfen katılımcı sayılarını giriniz.');
       return;
+    }
+    if (!musaitlikMesaji || (musaitlikMesaji && !musaitlikMesaji.musait)) {
+      alert('Seçilen mekanlar bu tarih/saatte uygun değil veya kontrol tamamlanmadı.');
+      return;
+    }
+    if (musaitlikKontrolEdiliyor) {
+        alert('Lütfen müsaitlik kontrolünün tamamlanmasını bekleyiniz.');
+        return;
     }
 
     updateFormData('mekanlar', seciliMekanlar);
@@ -134,32 +179,35 @@ const Step4MekanSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
 
   const toplamKisi = Object.values(seciliMekanlar).reduce((a, b) => a + b, 0);
 
-  const getMekanIcon = (mekanAdi) => {
-    if (mekanAdi.includes('Yemekhane')) return '';
-    if (mekanAdi.includes('Atölye')) return '';
-    if (mekanAdi.includes('Çardak')) return '';
-    if (mekanAdi.includes('Medrese')) return '';
-    if (mekanAdi.includes('Cami')) return '';
-    return '📍';
-  };
-
   return (
-    <div>
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-red-600 mb-2">Mekan Seçimi</h2>
-       
+    <div className="max-w-4xl mx-auto font-sans px-4 sm:px-0">
+      
+      <div className="mb-8 flex justify-between items-center">
+        <h2 className="text-3xl font-bold text-red-600 mb-2">Mekan ve Kişi Sayısı</h2>
+        
+        <button 
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          disabled={loading || mekanlar.length === 0}
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#D12A2C]" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A1 1 0 0011.666 3H8.333a1 1 0 00-.707.293L6.505 4.707a1 1 0 01-.707.293H4zm1 2h10v7a1 1 0 01-1 1H5a1 1 0 01-1-1V7zm5 2a3 3 0 100 6 3 3 0 000-6z" clipRule="evenodd" />
+          </svg>
+          Görseller
+        </button>
       </div>
 
+      {/* Yüklenme Durumu */}
       {loading ? (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-red-500 border-t-transparent"></div>
-          <p className="mt-4 text-gray-600">Mekanlar yükleniyor...</p>
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D12A2C]"></div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* Mekan Kartları */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
+          {/* Mekan Listesi Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {mekanlar.map((mekan) => {
               const secili = seciliMekanlar.hasOwnProperty(mekan.mekan_adi);
               const kisiSayisi = seciliMekanlar[mekan.mekan_adi] || 0;
@@ -167,78 +215,72 @@ const Step4MekanSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
               return (
                 <div
                   key={mekan.id}
-                  className={`border-2 rounded-xl p-6 transition-all duration-300 ${
-                    secili
-                      ? 'border-red-500 bg-red-50 shadow-lg'
-                      : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
-                  }`}
+                  className={`
+                    relative rounded-lg border transition-all duration-200 overflow-hidden
+                    ${secili 
+                      ? 'border-[#D12A2C] bg-white ring-1 ring-[#D12A2C] shadow-md' 
+                      : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'}
+                  `}
                 >
-                  {/* Mekan Başlığı */}
-                  <div className="flex items-start justify-between mb-4">
+                  {/* Kart Header */}
+                  <div 
+                    onClick={() => handleMekanToggle(mekan.mekan_adi)}
+                    className="p-4 cursor-pointer flex items-center justify-between select-none"
+                  >
                     <div className="flex items-center gap-3">
-                      <span className="text-4xl">{getMekanIcon(mekan.mekan_adi)}</span>
+                      {/* Checkbox */}
+                      <div className={`
+                        w-5 h-5 rounded border flex items-center justify-center transition-colors
+                        ${secili ? 'bg-[#D12A2C] border-[#D12A2C]' : 'bg-white border-gray-300'}
+                      `}>
+                        {secili && (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                      
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900">{mekan.mekan_adi}</h3>
-                        <p className="text-sm text-gray-600">Kapasite: {mekan.kapasite} kişi</p>
+                        <h3 className={`font-semibold text-sm sm:text-base ${secili ? 'text-red-900' : 'text-gray-700'}`}>
+                          {mekan.mekan_adi}
+                        </h3>
                       </div>
                     </div>
-
-                    {/* Seçim Checkbox */}
-                    <label className="flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={secili}
-                        onChange={() => handleMekanToggle(mekan.mekan_adi)}
-                        className="w-6 h-6 text-red-500 border-gray-300 rounded focus:ring-red-500"
-                      />
-                    </label>
                   </div>
 
-                  {/* Kişi Sayısı Girişi */}
                   {secili && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Kaç kişi? <span className="text-red-500">*</span>
-                      </label>
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleKisiSayisiChange(
-                              mekan.mekan_adi,
-                              Math.max(0, kisiSayisi - 5)
-                            )
-                          }
-                          className="w-10 h-10 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-bold"
-                        >
-                          -
-                        </button>
-                        <input
-                          type="number"
-                          min="0"
-                          max={mekan.kapasite}
-                          value={kisiSayisi}
-                          onChange={(e) =>
-                            handleKisiSayisiChange(mekan.mekan_adi, e.target.value)
-                          }
-                          className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg text-center text-xl font-bold focus:border-red-500 focus:ring-2 focus:ring-red-200"
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleKisiSayisiChange(
-                              mekan.mekan_adi,
-                              Math.min(mekan.kapasite, kisiSayisi + 5)
-                            )
-                          }
-                          className="w-10 h-10 bg-red-500 text-white rounded-lg hover:bg-red-600 font-bold"
-                        >
-                          +
-                        </button>
+                    <div className="bg-red-50/50 px-4 py-3 border-t border-red-100 animate-fade-in">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-[#D12A2C] uppercase tracking-wide">
+                          Katılımcı Sayısı
+                        </label>
+                        
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleKisiSayisiChange(mekan.mekan_adi, Math.max(0, kisiSayisi - 5))}
+                            className="w-8 h-8 flex items-center justify-center rounded bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-red-700 transition-colors"
+                          >
+                            -
+                          </button>
+                          
+                          <input
+                            type="number"
+                            min="0"
+                            value={kisiSayisi}
+                            onChange={(e) => handleKisiSayisiChange(mekan.mekan_adi, e.target.value)}
+                            className="w-16 h-8 text-center border border-gray-200 rounded text-gray-900 font-bold focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none"
+                          />
+                          
+                          <button
+                            type="button"
+                            onClick={() => handleKisiSayisiChange(mekan.mekan_adi, kisiSayisi + 5)}
+                            className="w-8 h-8 flex items-center justify-center rounded bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-red-700 transition-colors"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">
-                        Maksimum: {mekan.kapasite} kişi
-                      </p>
                     </div>
                   )}
                 </div>
@@ -246,90 +288,65 @@ const Step4MekanSecimi = ({ formData, updateFormData, nextStep, prevStep }) => {
             })}
           </div>
 
-          {/* Toplam Kişi Özeti */}
-          {toplamKisi > 0 && (
-            <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-4 mb-6">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700 font-semibold">Toplam Kişi Sayısı:</span>
-                <span className="text-3xl font-bold text-red-600">{toplamKisi} kişi</span>
+          {/* Durum ve Aksiyon Alanı */}
+          <div className="sticky bottom-0 bg-white/95 backdrop-blur py-4 border-t border-gray-100 z-20">
+            {/* Toplam Kişi */}
+            {toplamKisi > 0 && (
+              <div className="flex items-center justify-between mb-4 px-1">
+                <span className="text-gray-600 font-medium">Toplam Katılımcı</span>
+                <span className="text-xl font-bold text-[#D12A2C]">{toplamKisi} Kişi</span>
               </div>
-              <div className="mt-3">
-                <div className="flex justify-between text-sm text-gray-600 mb-1">
-                  <span>Kapasite Kullanımı</span>
-                  <span>{toplamKisi}/100</span>
-                </div>
-                <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
-                  <div
-                    className={`h-full transition-all ${
-                      toplamKisi > 100 ? 'bg-red-500' : 'bg-green-500'
-                    }`}
-                    style={{ width: `${Math.min(toplamKisi, 100)}%` }}
-                  ></div>
+            )}
+
+            {/* Müsaitlik Mesajı */}
+            {musaitlikKontrolEdiliyor ? (
+              <div className="p-3 bg-blue-50 text-blue-700 text-sm rounded flex items-center gap-2 mb-4">
+                <span className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
+                Uygunluk kontrol ediliyor...
+              </div>
+            ) : musaitlikMesaji && (
+              <div className={`p-3 text-sm rounded flex items-start gap-2 mb-4 ${
+                musaitlikMesaji.musait ? 'bg-green-50 text-green-800' : 'bg-red-50 text-[#D12A2C]'
+              }`}>
+                <span className="text-lg leading-none">{musaitlikMesaji.musait ? '✓' : '⚠️'}</span>
+                <div>
+                  <span className="font-bold block mb-0.5">{musaitlikMesaji.musait ? 'Müsait' : 'Uygun Değil'}</span>
+                  <span className="opacity-90">{musaitlikMesaji.message}</span>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Müsaitlik Mesajı */}
-          {musaitlikKontrolEdiliyor && (
-            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mb-6">
-              <p className="text-blue-700 flex items-center gap-2">
-                <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></span>
-                Müsaitlik kontrol ediliyor...
-              </p>
-            </div>
-          )}
-
-          {musaitlikMesaji && !musaitlikKontrolEdiliyor && (
-            <div
-              className={`border-2 rounded-lg p-4 mb-6 ${
-                musaitlikMesaji.musait
-                  ? 'bg-green-50 border-green-500'
-                  : 'bg-red-50 border-red-500'
-              }`}
-            >
-              <p
-                className={`font-semibold ${
-                  musaitlikMesaji.musait ? 'text-green-900' : 'text-red-900'
-                }`}
+            {/* Butonlar */}
+            <div className="flex flex-col-reverse md:flex-row justify-between items-center gap-4">
+              <button
+                type="button"
+                onClick={prevStep}
+                className="text-gray-500 hover:text-gray-800 font-medium text-sm transition-colors px-4 py-2"
               >
-                {musaitlikMesaji.musait ? '✅ Müsait!' : '❌ Uyarı!'}
-              </p>
-              <p
-                className={`text-sm mt-1 ${
-                  musaitlikMesaji.musait ? 'text-green-700' : 'text-red-700'
-                }`}
+                ← Geri
+              </button>
+
+              <button
+                type="submit"
+                disabled={toplamKisi === 0 || (musaitlikMesaji && !musaitlikMesaji.musait) || musaitlikKontrolEdiliyor}
+                className="w-full md:w-auto px-10 py-3 bg-[#D12A2C] text-white font-medium rounded hover:bg-red-900 transition-all shadow-sm hover:shadow-md disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {musaitlikMesaji.message}
-              </p>
+                Devam Et
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </button>
             </div>
-          )}
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between pt-6">
-            <button
-              type="button"
-              onClick={prevStep}
-              className="px-8 py-3 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-all"
-            >
-              ← Geri
-            </button>
-
-            <button
-              type="submit"
-              className="px-8 py-3 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition-all shadow-lg hover:shadow-xl disabled:bg-gray-300 disabled:cursor-not-allowed"
-              disabled={
-                toplamKisi === 0 ||
-                !musaitlikMesaji ||
-                !musaitlikMesaji.musait ||
-                musaitlikKontrolEdiliyor
-              }
-            >
-              Devam Et →
-            </button>
           </div>
         </form>
       )}
+      
+      {/* Modal */}
+      <MekanGaleriModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        mekanlar={mekanlar}
+      />
     </div>
   );
 };

@@ -124,15 +124,15 @@ const RezervasyonPage = () => {
   };
 
   return (
-    <div className="min-h-screen  to-orange-50 mt-10">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen to-orange-50 mt-10">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <div className="overflow-hidden min-h-[600px]">
           <div className="flex flex-col lg:flex-row">
             
             {/* Left Sidebar */}
-            <div className="lg:w-80 border-r border-gray-200 p-8">
-              <div className="mb-8">
-                <p className="text-sm text-gray-600">
+            <div className="lg:w-80 border-r border-gray-200 p-3 sm:p-6 lg:p-8">
+              <div className="mb-6 sm:mb-8">
+                <p className="text-xs sm:text-sm text-gray-600">
                   Formu doldurmak sadece <br /> birkaç dakika sürer
                 </p>
               </div>
@@ -142,7 +142,7 @@ const RezervasyonPage = () => {
                 {steps.map((step) => (
                   <div
                     key={step.id}
-                    className={`relative pl-6 py-4 cursor-pointer transition-all duration-200 rounded-lg ${
+                    className={`relative pl-4 sm:pl-6 py-3 sm:py-4 cursor-pointer transition-all duration-200 rounded-lg ${
                       step.id === currentStep
                         ? 'bg-red-50 border-l-4 border-red-500'
                         : step.id < currentStep
@@ -151,16 +151,16 @@ const RezervasyonPage = () => {
                     }`}
                     onClick={() => step.id < currentStep && setCurrentStep(step.id)}
                   >
-                    <div className="absolute left-2 top-1/2 -translate-y-1/2">
+                    <div className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2">
                       {step.id < currentStep ? (
-                        <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-green-500 flex items-center justify-center">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
                       ) : (
                         <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                          className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-xs font-bold ${
                             step.id === currentStep
                               ? 'bg-red-500 text-white'
                               : 'bg-gray-200 text-gray-500'
@@ -171,9 +171,9 @@ const RezervasyonPage = () => {
                       )}
                     </div>
 
-                    <div className="ml-6">
+                    <div className="ml-4 sm:ml-6">
                       <p
-                        className={`font-semibold text-sm ${
+                        className={`font-semibold text-xs sm:text-sm ${
                           step.id === currentStep
                             ? 'text-red-600'
                             : step.id < currentStep
@@ -183,17 +183,17 @@ const RezervasyonPage = () => {
                       >
                         {step.title}
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5">{step.subtitle}</p>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">{step.subtitle}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Progress Info */}
-              <div className="mt-8 p-4 bg-red-50 rounded-lg border border-red-200">
+              <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-red-50 rounded-lg border border-red-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">İlerleme</span>
-                  <span className="text-sm font-bold text-red-600">
+                  <span className="text-xs sm:text-sm font-medium text-gray-700">İlerleme</span>
+                  <span className="text-xs sm:text-sm font-bold text-red-600">
                     {Math.round((currentStep / totalSteps) * 100)}%
                   </span>
                 </div>
@@ -203,29 +203,28 @@ const RezervasyonPage = () => {
                     style={{ width: `${(currentStep / totalSteps) * 100}%` }}
                   />
                 </div>
-                <p className="text-xs text-gray-600 mt-2">
+                <p className="text-[10px] sm:text-xs text-gray-600 mt-2">
                   Adım {currentStep} / {totalSteps}
                 </p>
               </div>
             </div>
 
             {/* Right Content */}
-            <div className="flex-1 p-8 lg:p-12">
-              <div className="max-w-3xl">
+            <div className="flex-1 p-3 sm:p-6 lg:p-12">
+              <div className="max-w-4xl">
                 <div className="form-content">
                   {renderStep()}
                 </div>
 
-                {/* Security Notice */}
-                <div className="mt-12 pt-8 border-t border-gray-200">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-gray-200">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-gray-600 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                         Verilerinizi sorumlu bir şekilde işlemeye ve gizliliğinizi korumaya kararlıyız. 
                         Tüm bilgilerinizi güvenli bir şekilde saklıyor ve şifreliyoruz.
                       </p>

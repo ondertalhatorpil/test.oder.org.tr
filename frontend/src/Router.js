@@ -9,12 +9,15 @@ import Rezervasyon from './pages/RezervasyonPage/index.jsx'
 import BilgiYarismasi from "./pages/BilgiYarismasi/index.jsx";
 import Footer from './components/HomeFooter/index.jsx';
 import Header from './components/Header/HeaderController.jsx'; 
+import UserGalleryPage from './pages/UserGalleryPage/index.jsx';
 
 // Admin Sayfaları
 import AdminLogin from './pages/Admin/Login';
 import AdminLayout from './pages/Admin/Layout';
 import AdminDashboard from './pages/Admin/Dashboard';
 import AdminRezervasyonlar from './pages/Admin/Rezervasyonlar';
+import AdminGalleryPage from './pages/Admin/Usergallerypage.jsx';
+
 
 // Protected Route Component
 const ProtectedAdminRoute = ({ children }) => {
@@ -59,7 +62,7 @@ const Router = () => {
                     {/* Ana Sayfa Rotaları */}
                     <Route path="/" element={<HomePages />} />
                     <Route path="/hakkimizda" element={<About />} />
-                    <Route path="/galeri" element={<Galeri />} />
+                    <Route path="/galeri" element={<UserGalleryPage />} />
                     <Route path="/rezervasyon" element={<Rezervasyon />} />
                     <Route path="/bilgi-yarismasi" element={<BilgiYarismasi />} />
                     
@@ -76,6 +79,8 @@ const Router = () => {
                         <Route index element={<AdminDashboard />} />
                         <Route path="dashboard" element={<AdminDashboard />} />
                         <Route path="rezervasyonlar" element={<AdminRezervasyonlar />} />
+                        <Route path="/admin/galeri" element={<AdminGalleryPage />} />
+
                     </Route>
                 </Routes>
             </Layout>
