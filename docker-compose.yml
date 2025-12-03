@@ -27,7 +27,7 @@ services:
     environment:
       - DB_HOST=mysql
       - DB_USER=root
-      - DB_PASSWORD=guvenli_sifre_123
+      - DB_PASSWORD=1958Onder.
       - DB_NAME=besiraga_rezervasyon
       - DB_PORT=3306
       - PORT=5001
@@ -44,7 +44,7 @@ services:
     container_name: besiraga-mysql
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD=guvenli_sifre_123
+      - MYSQL_ROOT_PASSWORD=1958Onder.
       - MYSQL_DATABASE=besiraga_rezervasyon
     volumes:
       - mysql_data:/var/lib/mysql
@@ -63,8 +63,9 @@ services:
     environment:
       - PMA_HOST=mysql
       - PMA_PORT=3306
-      - PMA_USER=root
-      - PMA_PASSWORD=guvenli_sifre_123
+      - UPLOAD_LIMIT=50M
+      - MEMORY_LIMIT=512M
+      - MAX_EXECUTION_TIME=600
     depends_on:
       - mysql
     networks:
